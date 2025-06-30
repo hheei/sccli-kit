@@ -55,7 +55,7 @@ def run_dirstat():
     print(" " + "DIR".center(dir_max_len) + "COUNT".center(count_max_len) + "SIZE".center(size_max_len))
     print(" " + "-" * (dir_max_len + count_max_len + size_max_len))
     for dir_name, count, size in results:
-        print(f" {str(dir_name).replace(str(Path.home()), "~"):<{dir_max_len}}{count:>{count_max_len}}{_fmt_size(size):>{size_max_len}}")
+        print(f" {str(dir_name).replace(str(Path.home()), '~'):<{dir_max_len}}{count:>{count_max_len}}{_fmt_size(size):>{size_max_len}}")
     print(" " + "-" * (dir_max_len + count_max_len + size_max_len))
     
     total_count = sum(filter(lambda x: x > 0, [result[1] for result in results]))
