@@ -9,10 +9,13 @@ from ..const import cmdlen
 from ..fn import get_str_width
 from ..info import CFG
 
+def is_relative_to(child, parent):
+    child = os.path.realpath(child)
+    parent = os.path.realpath(parent)
+    return os.path.commonpath([child, parent]) == parent
+
 def run_slurm_table_generator():
-    """統計每個用戶的Pending和Running Jobs"""
     try:
-        # 獲取所有用戶的作業信息
         result = subprocess.run(
             ["squeue", "-u", os.getenv('USER') or os.getenv('LOGNAME') or '', "-o", "%i,%P,%j,%t,%M,%D", "--noheader"],
             capture_output=True, text=True, check=True
@@ -21,14 +24,12 @@ def run_slurm_table_generator():
         print(" No SLURM is found.")
         sys.exit(0)
     
-    # 解析作業信息
     # [[job_id, partition, job_name, state, time, nodes]]
     if result:
         jobs = list(map(lambda x: x.split(","), result.split('\n')))
     else:
         jobs = []
     
-    # 對每個作業進行分類
     JOBS_CATEGORIES = defaultdict(lambda: list())
     
     SHORT_TO_USER = {short: user for user, values in CFG['Users'].items() for short in values['short']}
@@ -51,7 +52,7 @@ def run_slurm_table_generator():
                 if match:
                     command_path = Path(match.group(1))
                     for root, user in ROOT_TO_USER.items():
-                        if command_path.is_relative_to(root):
+                        if is_relative_to(str(command_path), str(root)):
                             JOBS_CATEGORIES[user].append(job)
                             break
                     else:
