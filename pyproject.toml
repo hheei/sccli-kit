@@ -7,16 +7,22 @@ build-backend = "hatchling.build"
 
 [project]
 name = "scck"
+dynamic = ["version"]	
 description = "A command line interface toolkit on super computer."
 readme = "README.md"
-requires-python = ">=3.8"
-version = "1.0.0"
 license = "MIT"
+requires-python = ">=3.8"
 
-dependencies = []
+dependencies = [
+    "tqdm",
+    "tomli; python_version < '3.11'"
+]
 
 [project.scripts]
 scck = "scck.cli:run"
 
 [tool.hatch.build.targets.wheel]
 packages = ["scck"]
+
+[tool.hatch.version]
+source = "vcs"

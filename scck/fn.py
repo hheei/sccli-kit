@@ -30,3 +30,6 @@ prompt = Prompt()
 
 def is_option_yes(s: str):
     return s.strip().lower() in ["y","yes","1","t", "true"]
+
+def get_str_width(s: str):
+    return int((len(s.encode('utf-8')) - len(s))/2 + len(s))
