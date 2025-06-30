@@ -8,7 +8,8 @@ from ..const import cmdlen
 
 def _count_files_in_dir(path: Path):
     try:
-        du_result = subprocess.run(f'lfs find {path} -type f | tee >(wc -l >&2) | xargs stat -c %b | awk "{{s+=\\$1}} END {{print s*512/1024}}"', text=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL).stdout.split()[0]
+        cmd = f'''bash -c 'lfs find "{path}" -type f | tee >(wc -l >&2) | xargs stat -c %b | awk "{{s+=\\$1}} END {{print s*512/1024}}" | tee >(cat >&2)' '''
+        du_result = subprocess.run(cmd, shell=True, text=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL).stdout.split()[0]
     except subprocess.CalledProcessError:
         file_count = -1
         total_size = -1
@@ -17,7 +18,7 @@ def _count_files_in_dir(path: Path):
         file_count = int(file_count)
         total_size = int(total_size)
     
-    print("x", end="")
+    print("x", end="", flush=True)
     
     return path, file_count, total_size
 

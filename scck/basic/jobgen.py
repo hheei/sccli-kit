@@ -46,17 +46,20 @@ def run_genjob():
     qos = None
 
     if partitions[partion]["QOS"]:
-        cmd = prompt(
-            f" Select the quality of service:\n{chr(10).join([' {}) {}'.format(i, q) for i, q in enumerate(partitions[partion]['QOS'])])}\n\n q) Exit\n b) Back\n ----->\n")
+        if len(partitions[partion]["QOS"]) == 1:
+            qos = partitions[partion]["QOS"][0]
+        else:
+            cmd = prompt(
+                f" Select the quality of service:\n{chr(10).join([' {}) {}'.format(i, q) for i, q in enumerate(partitions[partion]['QOS'])])}\n\n q) Exit\n b) Back\n ----->\n")
 
-        if cmd == "b":
-            return True
-        elif cmd == "q":
-            sys.exit()
-        elif cmd != "":
-            assert cmd.isdigit() and 0 <= int(cmd) < len(
-                partitions[partion]["QOS"]), f"Invalid quality of service index: {cmd}!"
-            qos = partitions[partion]["QOS"][int(cmd)]
+            if cmd == "b":
+                return True
+            elif cmd == "q":
+                sys.exit()
+            elif cmd != "":
+                assert cmd.isdigit() and 0 <= int(cmd) < len(
+                    partitions[partion]["QOS"]), f"Invalid quality of service index: {cmd}!"
+                qos = partitions[partion]["QOS"][int(cmd)]
 
     # Time
     time = "1-00:00:00"
@@ -89,13 +92,14 @@ def run_genjob():
     gpu = None
 
     if partitions[partion]['GPUS'] is not None:
-        cmd = prompt(
-            f" Number of GPUs ( ≤{partitions[partion]['GPUS']} )\n ----->\n")
+        if partitions[partion]['GPUS'] != 0:
+            cmd = prompt(
+                f" Number of GPUs ( ≤{partitions[partion]['GPUS']} )\n ----->\n")
 
-        if cmd != "":
-            assert cmd.isdigit() and 0 < int(
-                cmd) <= partitions[partion]["GPUS"], f"Invalid GPU index: {cmd}!"
-            gpu = int(cmd)
+            if cmd != "":
+                assert cmd.isdigit() and 0 < int(
+                    cmd) <= partitions[partion]["GPUS"], f"Invalid GPU index: {cmd}!"
+                gpu = int(cmd)
 
     # CPU
     if gpu is None:
@@ -142,7 +146,7 @@ def run_genjob():
     sub_script = ['now=$(date +%Y%m%d-%H%M%S)',
                   'sbatch \\',
                   f'    --job-name=\"{JOB_NAME}\" \\',
-                  f'    --chdir={JOB_DIR}/$now \\',
+                  f'    --chdir={JOB_DIR}/{JOB_NAME} \\',
                   '    job.sh']
 
     cmd = prompt(

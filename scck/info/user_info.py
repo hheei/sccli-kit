@@ -90,12 +90,12 @@ def generate_slurm_info():
         available_partitions = list(map(lambda x: x[0].upper(), perm))
         avaliable_qos = list(map(lambda x: x[1].split(','), perm))
         partitions = {}
-
+        
         # Skip header line
         for i, line in enumerate(lines):
             line = line.split()
             # Only process partitions where user has permission
-            if line[0] in available_partitions:
+            if line[0].upper() in available_partitions:
                 # Get number of nodes for this partition
                 total_nodes = 1
                 if line[1] != "(null)" and line[1] != "N/A":
@@ -138,7 +138,7 @@ def generate_slurm_info():
         out.append(f"QOS       = {value['QOS']}")
         out.append(f"TIMELIMIT = \"{value['TIMELIMIT']}\"")
         out.append(f"")
-
+    
     return "\n".join(out)
 
 
