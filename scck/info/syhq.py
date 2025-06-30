@@ -68,9 +68,9 @@ def run_slurm_table_generator():
     user_stats = defaultdict(lambda: {'PD': 0, 'R': 0, 'CF': 0})
     
     for user, jobs in JOBS_CATEGORIES.items():
-        user_stats[user]['PD'] = len(list(filter(lambda x: x[3] == "PD", jobs)))
-        user_stats[user]['R'] = len(list(filter(lambda x: x[3] == "R", jobs)))
-        user_stats[user]['CF'] = len(list(filter(lambda x: x[3] == "CF", jobs)))
+        user_stats[user]['PD'] = sum(map(lambda x: int(x[5]), filter(lambda x: x[3] == "PD", jobs)))
+        user_stats[user]['R'] = sum(map(lambda x: int(x[5]), filter(lambda x: x[3] == "R", jobs)))
+        user_stats[user]['CF'] = sum(map(lambda x: int(x[5]), filter(lambda x: x[3] == "CF", jobs)))
     
     print(" " + " SLURM JOBS ".center(cmdlen, "="))
     print(f" Jobs: {num_jobs} \n")
