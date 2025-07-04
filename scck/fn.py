@@ -9,6 +9,8 @@ class Prompt:
         print(s, end="")
         if len(self.cmd_lst) > 0:
             ans = self.cmd_lst.pop(0)
+            if ans == "\\n":
+                ans = "\n"
             print(ans)
         else:
             inp = input().strip()
