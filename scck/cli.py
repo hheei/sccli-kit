@@ -18,8 +18,6 @@ callbacks = {
 }
 
 def run():
-    args = sys.argv[1:]
-    
     def print_title():
         print(" ", end="")
         # Print all available options
@@ -40,11 +38,7 @@ def run():
     
     # Main loop
     while True:
-        if args:
-            print("")
-            cmd = args.pop(0)
-        else:
-            cmd = prompt(" ----->\n")
+        cmd = prompt(" ----->\n")
         
         if cmd in calls:
             if not calls[cmd]():

@@ -8,18 +8,17 @@ from ..const import cmdlen
 
 def _count_files_in_dir(path: Path):
     try:
-        cmd = f'''bash -c 'lfs find "{path}" -type f | tee >(wc -l >&2) | xargs stat -c %b | awk "{{s+=\\$1}} END {{print s*512/1024}}" | tee >(cat >&2)' '''
-        du_result = subprocess.run(cmd, shell=True, text=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL).stdout.split()[0]
+        cmd1 = f'bash -c "lfs find {path} -type f | wc -l"'
+        cmd2 = f'bash -c \'lfs find {path} -type f -print0 | xargs -0 stat -c %b | awk "{{s+=\\$1}} END {{print s*512/1024}}"\''
+        file_count = subprocess.run(cmd1, shell=True, text=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL).stdout.strip()
+        total_size = subprocess.run(cmd2, shell=True, text=True, check=False, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL).stdout.strip()
     except subprocess.CalledProcessError:
         file_count = -1
         total_size = -1
     else:
-        file_count, total_size = du_result.split()
         file_count = int(file_count)
         total_size = int(total_size)
-    
-    print("x", end="", flush=True)
-    
+        
     return path, file_count, total_size
 
 def _fmt_size(size):

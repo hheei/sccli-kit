@@ -1,7 +1,9 @@
+import sys
+
 class Prompt:
-    def __init__(self):
+    def __init__(self, cmd_lst: list = []):
         self.last_cmd = None
-        self.cmd_lst = []
+        self.cmd_lst = cmd_lst
         
     def __call__(self, s: str):
         print(s, end="")
@@ -26,7 +28,7 @@ class Prompt:
         else:
             return cmd.strip()
 
-prompt = Prompt()
+prompt = Prompt(sys.argv[1:])
 
 def is_option_yes(s: str):
     return s.strip().lower() in ["y","yes","1","t", "true"]
