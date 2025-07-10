@@ -1,3 +1,4 @@
+import os
 import sys
 import subprocess
 from datetime import datetime
@@ -142,6 +143,7 @@ def run_genjob():
     run_options = {
         "vasp": lambda: run_vasp_template(node, cpu),
         "ppafm": lambda: run_ppafm_template(node, cpu),
+        "lammps": lambda: run_lammps_template(node, cpu, gpu),
     }
 
     sub_script = ['now=$(date +%Y%m%d-%H%M%S)',
@@ -324,4 +326,87 @@ def run_ppafm_template(node, cpu):
     return [], job_script
 
 def run_lammps_template(node, cpu, gpu):
-    pass
+    paths = os.environ["PATH"].split(os.pathsep)
+    avail_cmd = []
+    for path in paths:
+        path = Path(path)
+        if path.is_dir() and path.name == "bin":
+            for cmd in path.glob("*"):
+                if cmd.is_file() and os.access(cmd, os.X_OK) and cmd.name.startswith(("lmp","lammps")):
+                    avail_cmd.append(str(cmd))
+    
+    if len(avail_cmd) == 0:
+        cmd = prompt(" No lammps command found, please enter the lammps command:\n ----->\n")
+        if cmd == "":
+            print(" Using default lammps command: lmp")
+            USE_CMD = "lmp"
+        else:
+            USE_CMD = cmd
+            
+    elif len(avail_cmd) == 1:
+        USE_CMD = avail_cmd[0]
+        print(f" Found lammps command: {USE_CMD}")
+        
+    else:
+        cmd = prompt(
+            f" Select lammps command:\n{chr(10).join([' {}) {}'.format(i, q) for i, q in enumerate(avail_cmd)])}\n\n q) Exit\n b) Back\n ----->\n")
+
+        if cmd == "b":
+            return
+        elif cmd == "q":
+            sys.exit()
+        elif cmd != "":
+            assert cmd.isdigit() and 0 <= int(cmd) < len(avail_cmd), f"Invalid lammps command index: {cmd}!"
+            USE_CMD = avail_cmd[int(cmd)]
+    
+    if node == 1:
+        OMP_NUM_THREADS = cpu
+    else:
+        cmd = prompt(f" Please set OMP_NUM_THREADS ( ≤ {cpu} )\n ----->\n")
+        if cmd != "":
+            assert cmd.isdigit() and 0 < int(cmd) <= cpu, f"Invalid OMP_NUM_THREADS: {cmd}!"
+            OMP_NUM_THREADS = int(cmd)
+        else:
+            OMP_NUM_THREADS = 1
+    
+    job_script = [f"export OMP_NUM_THREADS={OMP_NUM_THREADS}"]
+    
+    if gpu is None and OMP_NUM_THREADS > 1:
+        prefix = "-sf omp"
+    elif gpu is not None:
+        prefix = "-sf gpu"
+    else:
+        prefix = ""
+        
+    input_files = [p for p in Path().glob("*") if p.is_file() and p.stem in ("in", "input")]
+    
+    if len(input_files) == 0:
+        cmd = prompt(" No input file found, please specify the input file:\n ----->\n")
+        if cmd == "":
+            print(" Using default input file: in.lmp")
+            IN_CMD = "-in in.lmp"
+        else:
+            IN_CMD = f"-in {cmd}"
+            
+    elif len(input_files) == 1:
+        IN_CMD = f"-in {input_files[0]}"
+        print(f" Found input file: {input_files[0]}")
+    
+    else:
+        cmd = prompt(
+            f" Select the input file:\n{chr(10).join([' {}) {}'.format(i, s) for i, s in enumerate(input_files)])}\n\n q) Exit\n b) Back\n ----->\n")
+            
+        if cmd == "b":
+            return
+        elif cmd == "q":
+            sys.exit()
+        elif cmd != "":
+            assert cmd.isdigit() and 0 <= int(cmd) < len(input_files), f"Invalid input file index: {cmd}!"
+            IN_CMD = f"-in {input_files[int(cmd)]}"
+            
+    if node > 1:
+        job_script.append(f"mpirun -np {node * cpu} {USE_CMD} {prefix} {IN_CMD}")
+    else:
+        job_script.append(f"{USE_CMD} {prefix}{IN_CMD}")
+        
+    return [], job_script
