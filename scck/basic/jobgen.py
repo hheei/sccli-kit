@@ -405,8 +405,10 @@ def run_lammps_template(node, cpu, gpu):
             IN_CMD = f"-in {input_files[int(cmd)]}"
             
     if node > 1:
-        job_script.append(f"mpirun -np {node * cpu} {USE_CMD} {prefix} {IN_CMD}")
+        if node * cpu % OMP_NUM_THREADS > 0:
+            print(f" Warning: {node * cpu} CPUs is not divisible by {OMP_NUM_THREADS}, some CPUs will be wasted!")
+        job_script.append(f"mpirun -np {node * cpu // OMP_NUM_THREADS} {USE_CMD} {prefix} {IN_CMD}")
     else:
-        job_script.append(f"{USE_CMD} {prefix}{IN_CMD}")
+        job_script.append(f"{USE_CMD} {prefix} {IN_CMD}")
         
     return [], job_script
