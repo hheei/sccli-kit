@@ -1,9 +1,10 @@
 import sys
+import subprocess
 from datetime import datetime
 from pathlib import Path
 
 from scck.const import cmdlen
-from scck.fn import prompt, is_option_yes
+from scck.fn import prompt, get_python_venv
 from scck.info import CFG
 
 
@@ -222,38 +223,57 @@ def run_vasp_template(node, cpu):
 
 def run_ppafm_template(node, cpu):
     import os
-    assert node == 1, "ppafm only supports single node"
+    assert node == 1, "PPAFM only supports single node"
 
     cmd = prompt.last_cmd
 
-    CONDA_PATH = Path(os.environ.get("CONDA_PREFIX") or "")
-
-    avail_envs = ["base"] + \
-        list(e.name for e in CONDA_PATH.glob("envs/*") if e.is_dir())
-    if (Path() / ".venv").exists():
-        avail_envs.append(".venv")
-
-    cmd = prompt(
-        f" Select the python environment:\n{chr(10).join([' {}) {}'.format(i, e) for i, e in enumerate(avail_envs)])}\n\n q) Exit\n b) Back\n ----->\n")
-
-    if cmd == "b":
-        return
-    elif cmd == "q":
-        sys.exit()
-    elif cmd != "":
-        assert cmd.isdigit() and 0 <= int(cmd) < len(
-            avail_envs), f"Invalid environment index: {cmd}!"
-        env_name = avail_envs[int(cmd)]
+    avail_envs = get_python_venv()
+    
+    if len(avail_envs["conda"]) == 1 and len(avail_envs["venv"]) == 0:
+        print(f" Found only one conda environment: {avail_envs['conda'][0]}")
+        env_name = avail_envs["conda"][0]
+        USE_CONDA = True
+    elif len(avail_envs["conda"]) == 0 and len(avail_envs["venv"]) == 1:
+        print(f" Found only one venv environment: {avail_envs['venv'][0]}")
+        env_name = avail_envs["venv"][0]
+        USE_CONDA = False
+    elif len(avail_envs["conda"]) == 0 and len(avail_envs["venv"]) == 0:
+        print(" Warning: No python environment found, no venv will be used")
+        env_name = ".venv"
+        USE_CONDA = False
+    else:
+        envs = avail_envs["conda"] + avail_envs["venv"]
+        print(" Select the python environment:")
+        if len(avail_envs["conda"]) > 0:
+            print(" --> CONDA <--")
+            print("\n".join([f" {i}) {envs[i]}" for i in range(len(avail_envs["conda"]))]))
+        if len(avail_envs["venv"]) > 0:
+            print(" --> VENV <--")
+            print("\n".join([f" {i}) {envs[i]}" for i in range(len(avail_envs["venv"]))]))
+        print("\n q) Exit\n b) Back\n ----->\n")
+        
+        cmd = prompt("")
+    
+        if cmd == "b":
+            return
+        elif cmd == "q":
+            sys.exit()
+        elif cmd != "":
+            assert cmd.isdigit() and 0 <= int(cmd) < len(envs), f"Invalid environment index: {cmd}!"
+            cmd = int(cmd)
+            env_name = envs[cmd]
+            USE_CONDA = cmd < len(avail_envs["conda"])
 
     STRUCTURE_FILE = [p for p in Path().glob("*") if p.is_file()
                       and str(p).endswith(("LOCPOT", ".xsf", ".poscar", ".xyz", ".cif"))]
-
+    
     if len(STRUCTURE_FILE) == 0:
         raise ValueError(
             "No structure file found, Must be one of the following: LOCPOT, .xsf, .poscar, .xyz, .cif")
+                
     elif len(STRUCTURE_FILE) == 1:
         stru = STRUCTURE_FILE[0]
-        print(f"Found only one structure file: {STRUCTURE_FILE[0]}")
+        print(f"Found structure file: {STRUCTURE_FILE[0]}")
     else:
         cmd = prompt(
             f" Select the structure file:\n{chr(10).join([' {}) {}'.format(i, s) for i, s in enumerate(STRUCTURE_FILE)])}\n\n q) Exit\n b) Back\n ----->\n")
@@ -267,38 +287,41 @@ def run_ppafm_template(node, cpu):
                 STRUCTURE_FILE), f"Invalid structure file index: {cmd}!"
             stru = STRUCTURE_FILE[int(cmd)]
 
-    PLOT_ATOM = False
-
-    if stru.suffix not in (".xsf", "LOCPOT"):
-        cmd = prompt(f" Plot Atoms on images: (default: no)\n ----->\n")
-
-        if is_option_yes(cmd):
-            PLOT_ATOM = True
-
-    if env_name == ".venv":
-        job_script = [f"source .venv/bin/activate"]
+    if stru.name == "LOCPOT":
+        print(" LOCPOT detected, converting to XSF...")
+        try:
+            subprocess.run(["v2xsf", stru, "-d"], check = True, cwd = str(Path().cwd()))
+            stru = stru.with_suffix(".xsf")
+            print(f" Converted LOCPOT to XSF: {stru}")
+        except Exception as e:
+            print(f" Failed to convert LOCPOT to XSF.")
+            raise e
+        
+    if env_name is not None and USE_CONDA:
+        job_script = [f"conda activate {env_name}"]
+    elif env_name is not None and not USE_CONDA:
+        job_script = [f"source {env_name}/bin/activate"]
     else:
-        job_script = [f"mamba activate {env_name}"]
+        job_script = []
 
     job_script.append(f"export OMP_NUM_THREADS={cpu}")
 
-    if str(stru).endswith(("LOCPOT", ".xsf")):
+    if str(stru).endswith(".xsf"):
         job_script.append(
             f"ppafm-generate-elff -i {stru} -F xsf -t dz2 -f npy")
         job_script.append(f"ppafm-generate-ljff -i {stru} -F xsf -f npy")
         job_script.append(f"ppafm-relaxed-scan -k 0.25 -q -0.1 --pos -f npy")
         job_script.append(
-            f"ppafm-plot-results --arange 2.0 4.0 2 --df --cbar -f npy {'--atoms' if PLOT_ATOM else ''}")
+            f"ppafm-plot-results --arange 2.0 4.0 2 --df --cbar -f npy")
     else:
         job_script.append(
             f"ppafm-generate-elff-point-charges -i {stru} -f npy")
         job_script.append(f"ppafm-generate-ljff -i {stru} -f npy")
         job_script.append(f"ppafm-relaxed-scan -k 0.25 -q -0.1 --pos -f npy")
         job_script.append(
-            f"ppafm-plot-results --arange 2.0 4.0 2 --df --cbar -f npy {'--atoms' if PLOT_ATOM else ''}")
+            f"ppafm-plot-results --arange 2.0 4.0 2 --df --cbar -f npy")
 
     return [], job_script
-
 
 def run_lammps_template(node, cpu, gpu):
     pass
