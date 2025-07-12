@@ -359,6 +359,10 @@ def run_lammps_template(node, cpu, gpu):
             assert cmd.isdigit() and 0 <= int(cmd) < len(avail_cmd), f"Invalid lammps command index: {cmd}!"
             USE_CMD = avail_cmd[int(cmd)]
     
+    CONDA_PATH = Path(os.environ.get("CONDA_EXE", "")).parent.parent
+    if USE_CMD.startswith(str(CONDA_PATH)):
+        job_script = [f"conda activate {USE_CMD.replace(str(CONDA_PATH), "").split("/")[0]}"]
+    
     if node == 1:
         OMP_NUM_THREADS = cpu
     else:
