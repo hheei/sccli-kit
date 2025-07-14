@@ -373,7 +373,7 @@ def run_lammps_template(node, cpu, gpu):
     
     CONDA_PATH = Path(os.environ.get("CONDA_EXE", "")).parent.parent
     if USE_CMD.startswith(str(CONDA_PATH)):
-        job_script.append(f"conda activate {USE_CMD.replace(str(CONDA_PATH), "").split("/")[0]}")
+        job_script.append(f"conda activate {USE_CMD.replace(str(CONDA_PATH), "").lstrip("/").split("/")[0]}")
     
     if gpu is None and OMP_NUM_THREADS > 1:
         prefix = "-sf omp"
