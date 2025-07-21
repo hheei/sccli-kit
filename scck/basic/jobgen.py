@@ -102,6 +102,8 @@ def run_genjob():
                 assert cmd.isdigit() and 0 < int(
                     cmd) <= partitions[partion]["GPUS"], f"Invalid GPU index: {cmd}!"
                 gpu = int(cmd)
+            else:
+                gpu = 1
 
     # CPU
     if gpu is None:
