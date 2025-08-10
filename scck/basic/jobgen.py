@@ -69,15 +69,17 @@ def run_genjob():
     if partitions[partion]["TIMELIMIT"] is not None:
         cmd = prompt(
             f" Task running time ( <{partitions[partion]['TIMELIMIT']} )\n Format: d-HH:MM:SS\n ----->\n")
-
+        _t = datetime.strptime(
+                partitions[partion]["TIMELIMIT"], "%d-%H:%M:%S" if "-" in partitions[partion]["TIMELIMIT"] else "%H:%M:%S")
+        
         if cmd != "":
             _cmd = datetime.strptime(
                 cmd, "%d-%H:%M:%S" if "-" in cmd else "%H:%M:%S")
-            _t = datetime.strptime(
-                partitions[partion]["TIMELIMIT"], "%d-%H:%M:%S" if "-" in partitions[partion]["TIMELIMIT"] else "%H:%M:%S")
             assert _cmd < _t, f"Invalid time: {cmd}!"
             time = _cmd.strftime(
                 "%d-%H:%M:%S") if _cmd < _t else _t.strftime("%d-%H:%M:%S")
+        else:
+            time = _t.strftime("%d-%H:%M:%S")
 
     # Node
     node = 1
@@ -130,14 +132,15 @@ def run_genjob():
         f"#SBATCH -c {cpu}",
         None if gpu is None else f"#SBATCH --gres=gpu:{gpu}",
         f"#SBATCH --time={time}",
-        "#SBATCH --output=job.%j.out",
-        "#SBATCH --error=job.%j.err",
+        "#SBATCH --output=%j.job.out",
+        "#SBATCH --error=%j.job.err",
         "",
+        f"mkdir -p {JOB_DIR}/{JOB_NAME}"
         "source ~/.bashrc",
         "module purge",
         "cd ${SLURM_SUBMIT_DIR}",
-        f"ln -s {JOB_DIR}/${{SLURM_JOB_NAME}}/job.${{SLURM_JOB_ID}}.out ${{SLURM_SUBMIT_DIR}}",
-        f"ln -s {JOB_DIR}/${{SLURM_JOB_NAME}}/job.${{SLURM_JOB_ID}}.err ${{SLURM_SUBMIT_DIR}}",
+        f"ln -s ${{SLURM_SUBMIT_DIR}}/${{SLURM_JOB_ID}}.job.out {JOB_DIR}/${{SLURM_JOB_NAME}}/",
+        f"ln -s ${{SLURM_SUBMIT_DIR}}/${{SLURM_JOB_ID}}.job.err {JOB_DIR}/${{SLURM_JOB_NAME}}/",
         "",
     ]
 
@@ -151,8 +154,8 @@ def run_genjob():
     sub_script = ['now=$(date +%Y%m%d-%H%M%S)',
                   'sbatch \\',
                   f'    --job-name=\"{JOB_NAME}\" \\',
-                  f'    --chdir={JOB_DIR}/{JOB_NAME} \\',
-                  '    job.sh']
+                  '    job.sh'
+                  ]
 
     cmd = prompt(
         f" Select run script templates\n{chr(10).join([' {}) {}'.format(i, r) for i, r in enumerate(run_options.keys())])}\n\n q) Exit\n b) Back\n ----->\n")
@@ -375,7 +378,7 @@ def run_lammps_template(node, cpu, gpu):
     
     CONDA_PATH = Path(os.environ.get("CONDA_EXE", "")).parent.parent
     if USE_CMD.startswith(str(CONDA_PATH)):
-        job_script.append(f"conda activate {USE_CMD.replace(str(CONDA_PATH), "").lstrip("/").split("/")[1]}")
+        job_script.append(f"conda activate {USE_CMD.replace(str(CONDA_PATH), '').lstrip('/').split('/')[1]}")
     
     if gpu is None and OMP_NUM_THREADS > 1:
         prefix = "-sf omp"
