@@ -135,9 +135,10 @@ def run_genjob():
         "#SBATCH --output=%j.job.out",
         "#SBATCH --error=%j.job.err",
         "",
-        f"mkdir -p {JOB_DIR}/{JOB_NAME}"
         "source ~/.bashrc",
         "module purge",
+        f"mkdir -p {JOB_DIR}/{JOB_NAME}",
+        "",
         "cd ${SLURM_SUBMIT_DIR}",
         f"ln -s ${{SLURM_SUBMIT_DIR}}/${{SLURM_JOB_ID}}.job.out {JOB_DIR}/${{SLURM_JOB_NAME}}/",
         f"ln -s ${{SLURM_SUBMIT_DIR}}/${{SLURM_JOB_ID}}.job.err {JOB_DIR}/${{SLURM_JOB_NAME}}/",
