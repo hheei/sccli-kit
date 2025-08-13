@@ -34,7 +34,7 @@ def run():
         return print("\n q)  Exit")
     
     if len(sys.argv) > 1 and sys.argv[1] == "cfg":
-        # scck cfg Users.$USERNAME.short.0
+        # scck cfg Users.$USER.short.0
         from scck.info import CFG
         args = sys.argv[2].split(".")
         value = CFG
