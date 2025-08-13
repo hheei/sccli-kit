@@ -1,8 +1,8 @@
 import sys
-from .basic import run_genjob
-from .info import run_gen_user_info, run_slurm_table_generator, run_dirstat
-from .const import title, cmdlen
-from .fn import prompt
+from scck.basic import run_genjob
+from scck.info import run_gen_user_info, run_slurm_table_generator, run_dirstat
+from scck.const import title, cmdlen
+from scck.fn import prompt
 
 
 callbacks = {
@@ -47,3 +47,16 @@ def run():
                 print_title()
         else:
             raise ValueError(f"Command `{cmd}` not found")
+        
+def print_cfg():
+    # e.g. scck-cfg Users.$USERNAME.short.0
+    from scck.info import CFG
+    args = sys.argv[1].split(".")
+    value = CFG
+    for arg in args:
+        if arg.isdigit():
+            value = value[int(arg)]
+        else:
+            value = value[arg]
+            
+    print(value, end="")

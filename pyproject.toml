@@ -20,6 +20,7 @@ dependencies = [
 
 [project.scripts]
 scck = "scck.cli:run"
+scck-cfg = "scck.cli:print_cfg"
 
 [tool.hatch.build.targets.wheel]
 packages = ["scck"]

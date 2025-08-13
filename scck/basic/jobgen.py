@@ -121,8 +121,8 @@ def run_genjob():
     else:
         cpu = partitions[partion]["CPUS"] // partitions[partion]["GPUS"] * gpu
 
-    JOB_NAME = f"{CFG['Users'][user]['short'][0]}-$now"
-    JOB_DIR = Path.home() / ".jobs"
+    JOB_NAME = f"`scck-cfg Users.${{USERNAME}}.short.0`-$now"
+    JOB_DIR = Path(f"${{HOME}}/.jobs")
 
     job_script = [
         "#!/bin/bash",
