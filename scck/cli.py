@@ -38,14 +38,18 @@ def run():
         from scck.info import CFG
         args = sys.argv[2].split(".")
         value = CFG
-        for arg in args:
-            if arg.isdigit():
-                value = value[int(arg)]
-            else:
-                value = value[arg]
-                
-        print(value, end="")
-        exit(0)
+        try:
+            for arg in args:
+                if arg.isdigit():
+                    value = value[int(arg)]
+                else:
+                    value = value[arg]
+                    
+            print(value, end="")
+            exit(0)
+        except KeyError as e:
+            print(sys.argv[2])
+            raise e
         
     else:
         calls: dict = {"q": lambda: sys.exit(0)}
