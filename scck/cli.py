@@ -33,7 +33,7 @@ def run():
         
         return print("\n q)  Exit")
     
-    if sys.argv[1] == "cfg":
+    if len(sys.argv) > 1 and sys.argv[1] == "cfg":
         # scck cfg Users.$USERNAME.short.0
         from scck.info import CFG
         args = sys.argv[2].split(".")
@@ -46,6 +46,7 @@ def run():
                 
         print(value, end="")
         exit(0)
+        
     else:
         calls: dict = {"q": lambda: sys.exit(0)}
         print_title()
