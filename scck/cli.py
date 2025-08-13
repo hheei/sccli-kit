@@ -33,30 +33,32 @@ def run():
         
         return print("\n q)  Exit")
     
-    calls: dict = {"q": lambda: sys.exit(0)}
-    print_title()
-    
-    # Main loop
-    while True:
-        cmd = prompt(" ----->\n")
-        
-        if cmd in calls:
-            if not calls[cmd]():
-                calls["q"]()
+    if sys.argv[1] == "cfg":
+        # scck cfg Users.$USERNAME.short.0
+        from scck.info import CFG
+        args = sys.argv[2].split(".")
+        value = CFG
+        for arg in args:
+            if arg.isdigit():
+                value = value[int(arg)]
             else:
-                print_title()
-        else:
-            raise ValueError(f"Command `{cmd}` not found")
+                value = value[arg]
+                
+        print(value, end="")
+        exit(0)
+    else:
+        calls: dict = {"q": lambda: sys.exit(0)}
+        print_title()
         
-def print_cfg():
-    # e.g. scck-cfg Users.$USERNAME.short.0
-    from scck.info import CFG
-    args = sys.argv[1].split(".")
-    value = CFG
-    for arg in args:
-        if arg.isdigit():
-            value = value[int(arg)]
-        else:
-            value = value[arg]
+        # Main loop
+        while True:
+            cmd = prompt(" ----->\n")
             
-    print(value, end="")
+            if cmd in calls:
+                if not calls[cmd]():
+                    calls["q"]()
+                else:
+                    print_title()
+            else:
+                raise ValueError(f"Command `{cmd}` not found")
+            
