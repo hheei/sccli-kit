@@ -121,7 +121,6 @@ def run_genjob():
     else:
         cpu = partitions[partion]["CPUS"] // partitions[partion]["GPUS"] * gpu
 
-    JOB_NAME = f"`scck cfg Users.${{USER}}.short.0`-$now"
     JOB_DIR = Path(f"${{HOME}}/.jobs")
 
     job_script = [
@@ -137,7 +136,7 @@ def run_genjob():
         "",
         "source ~/.bashrc",
         "module purge",
-        f"mkdir -p {JOB_DIR}/{JOB_NAME}",
+        f"mkdir -p {JOB_DIR}/${{SLURM_JOB_NAME}}",
         "",
         "cd ${SLURM_SUBMIT_DIR}",
         f"ln -s ${{SLURM_SUBMIT_DIR}}/${{SLURM_JOB_ID}}.job.out {JOB_DIR}/${{SLURM_JOB_NAME}}/",
@@ -153,8 +152,9 @@ def run_genjob():
     }
 
     sub_script = ['now=$(date +%Y%m%d-%H%M%S)',
+                  'JOB_NAME=`scck cfg Users.${{USER}}.short.0`-$now',
                   'sbatch \\',
-                  f'    --job-name=\"{JOB_NAME}\" \\',
+                  f'    --job-name=\"$JOB_NAME\" \\',
                   '    job.sh'
                   ]
 

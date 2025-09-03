@@ -48,8 +48,7 @@ def run():
             print(value, end="")
             exit(0)
         except KeyError as e:
-            print(sys.argv[2])
-            raise e
+            exit(0)
         
     else:
         calls: dict = {"q": lambda: sys.exit(0)}
