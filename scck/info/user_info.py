@@ -1,5 +1,7 @@
 import sys
 from pathlib import Path
+import subprocess
+import re
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -45,7 +47,21 @@ def run_gen_user_info():
 #  TIMELIMIT = "1-00:00:00"
 #
 # -*- {{{{ $AUTO_GENERATED_SLURM_INFO }}}} -*- #
+
+[ Software ]
+# Define path for software and there enviroment
+#
+# [ Software.vasp-6.5.1 ]
+#  PATH = "path/to/vasp"            ### Path where the software is installed
+#  ENV  = "module add vasp/6.5.1"   ### Environment to activate
+#  CMD  = "vasp_std"                ### Command to run
+#
+# [ Software.ppafm-0.4.0 ]
+#  ENV  = "conda activate test"
+#  CMD  = "ppafm-gui"
+
 """
+
     DEFAULT_CONFIG = DEFAULT_CONFIG.replace(
         "# -*- {{ $AUTO_GENERATED_USER_INFO }} -*- #", generate_default_userinfo() + "\n# -*- {{ $AUTO_GENERATED_USER_INFO }} -*- #")
     DEFAULT_CONFIG = DEFAULT_CONFIG.replace(

@@ -4,6 +4,20 @@ from scck.info import run_gen_user_info, run_slurm_table_generator, run_dirstat
 from scck.const import title, cmdlen
 from scck.fn import prompt
 
+FNS = {
+    "BASIC": [
+        (1, "Hello World", lambda: print("Hello, World!")),
+        (2, "Job Generator", lambda: print("Job Generator")),
+    ],
+    "INFO": [
+        (90, "Generate User Information", lambda: run_gen_user_info()),
+        (91, "Slurm jobs statistics", lambda: run_slurm_table_generator()),
+        (92, "Directory statistics", lambda: run_dirstat()),
+    ],
+    "CUSTOM": [
+        (100, "Custom", lambda: print("Custom")),
+    ]
+}
 
 callbacks = {
     "Basic": [

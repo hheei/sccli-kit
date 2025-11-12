@@ -8,7 +8,6 @@ from scck.const import cmdlen
 from scck.fn import prompt, get_python_venv
 from scck.info import CFG
 
-
 def run_genjob():
     print(" ", end="")
     print(" Job Generator ".center(cmdlen, "="))

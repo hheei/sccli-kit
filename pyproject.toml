@@ -15,7 +15,8 @@ requires-python = ">=3.8"
 
 dependencies = [
     "tqdm",
-    "tomli; python_version < '3.11'"
+    "tomli; python_version < '3.11'",
+    "prompt_toolkit"
 ]
 
 [project.scripts]
