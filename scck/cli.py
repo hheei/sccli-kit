@@ -25,7 +25,7 @@ def run_main(args):
         global title
         lines = [f" {title}"]
         for c, cbs in callbacks.items():
-            lines.append(f" {(' ' + c + ' ').center(cmdlen, "=")}")
+            lines.append(f" {(' ' + c + ' ').center(cmdlen, '=')}")
             for cb in cbs:
                 if isinstance(cb[0], int):
                     call_id = f"{cb[0]:02d}"
