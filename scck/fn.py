@@ -39,8 +39,6 @@ class Prompt:
         print(title, file=self.out)
         ans = self.ask()
         if ans == self.ds:
-            if default is None:
-                raise ValueError(f"Value is required!")
             ans = default
             
         if mapper is not None:
