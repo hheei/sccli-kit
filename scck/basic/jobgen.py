@@ -10,20 +10,18 @@ from scck.basic.jobgen_template import run_options
 def run_genjob(p: Prompt, *args, **kwargs):
     print(f" {' Job Generator '.center(cmdlen, '=')}")
 
-    # users = list(CFG["Users"].keys())
-    # if len(users) == 1:
-    #     user = users[0]
-    # elif CFG["Config"]["user_mode"] == "local":
-    #     try:
-    #         user = users[users.index(get_user_name())]
-    #     except IndexError:
-    #         user = users[0]
-    # else:
-    #     user = users[p.select(
-    #         title = " Select the user:",
-    #         options = users,
-    #         default_option = 0,
-    #     )]
+    users = list(CFG["Users"].keys())
+    if len(users) == 1:
+        user = users[0]
+    else:
+        try:
+            user = users[users.index(get_user_name())]
+        except IndexError:    
+            user = users[p.select(
+                title = " Select the user:",
+                options = users,
+                default_option = 0,
+            )]
         
     partitions = list(CFG["Cluster"].keys())
     if len(partitions) == 1:
