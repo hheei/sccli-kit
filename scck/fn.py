@@ -107,10 +107,10 @@ def parse_time(s: str):
     raise ValueError(f"Cannot parse time format: {s}")
 
 def get_user_name():
-    from scck.info import CFG
-    for name, value in CFG['Users'].items():
+    from scck.config import CFG
+    for name, value in CFG["Users"].items():
         try:
-            Path.cwd().relative_to(Path(value['root']).expanduser())
+            Path.cwd().relative_to(Path(value["root"]).expanduser())
             return name
         except ValueError:
             continue

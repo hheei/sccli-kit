@@ -70,6 +70,8 @@ coverage.xml
 ehthumbs.db
 Thumbs.db
 
+scck/config/cfg.json
+
 test.py
 sub.sh
 job.sh

@@ -3,8 +3,8 @@ import sys
 import subprocess
 from pathlib import Path
 
-from scck.fn import Prompt, get_python_venv
-from scck.info import CFG
+from scck.fn import Prompt
+from scck.config import CFG
 
 def job_empty_template(p: Prompt, partition, nodes, cpus_per_node, gpus_per_node, cpus_per_task, timelimit, qos, *args, **kwargs):
     if cpus_per_task is None:

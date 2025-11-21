@@ -5,7 +5,8 @@ def run_main(args):
     from scck.fn import Prompt
     from scck.error import BackException
     from scck.basic import run_genjob
-    from scck.info import run_gen_user_info, run_slurm_table_generator, run_dirstat
+    from scck.info import run_slurm_table_generator, run_dirstat
+    
     callbacks = {
         "Basic": [
             (1, "Print Hello World", lambda p: print("Hello, World!")),
@@ -15,9 +16,6 @@ def run_main(args):
             (11, "Slurm jobs statistics", run_slurm_table_generator),
             (12, "Directory statistics", run_dirstat),
         ],
-        "Debug": [
-            (90, "Auto configuration", run_gen_user_info),
-        ]
     }
 
     calls = {v[0]: v[2] for vs in callbacks.values() for v in vs}
@@ -65,7 +63,7 @@ def run_main(args):
             raise ValueError(f"Command `{cmd}` not found")
 
 def run_cfg(args):
-    from scck.info import CFG
+    from scck.config import CFG
     args = args.name.split(".")
     value = CFG
     try:
@@ -86,7 +84,7 @@ def run_job_init(args):
     from datetime import datetime
     from pathlib import Path
     from scck.fn import get_user_name
-    from scck.info import CFG
+    from scck.config import CFG
     date = datetime.now().strftime("%Y%m%d")
     name = get_user_name()
     job_submit_dir = Path(os.getenv('SLURM_SUBMIT_DIR', "UNK-DIR")).expanduser()
@@ -115,7 +113,7 @@ def run_job_init(args):
 
 def run_job_user(args):
     from scck.fn import get_user_name
-    from scck.info import CFG
+    from scck.config import CFG
     name = get_user_name()
     print(CFG['Users'][name]['short'][0], end="")
 

@@ -13,4 +13,4 @@ title = "\n ".join([
          "Author: Chon-Hei Lo".center(cmdlen, " ")
          ])
 
-config_path = Path("~/.sccli-kit").expanduser()
+config_path = Path(__file__).parent / "config" / "cfg.json"

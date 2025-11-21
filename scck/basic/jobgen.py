@@ -1,21 +1,23 @@
-import os
 import sys
-import subprocess
-from datetime import datetime
 from pathlib import Path
 from difflib import get_close_matches
 
 from scck.const import cmdlen
-from scck.fn import Prompt, get_python_venv, parse_time
-from scck.info import CFG
+from scck.fn import Prompt, parse_time, get_user_name
+from scck.config import CFG
 from scck.basic.jobgen_template import run_options
 
 def run_genjob(p: Prompt, *args, **kwargs):
     print(f" {' Job Generator '.center(cmdlen, '=')}")
 
-    users = list(CFG['Users'].keys())
-    if CFG['Config']['user_mode'] == "local" or len(users) == 1:
+    users = list(CFG["Users"].keys())
+    if len(users) == 1:
         user = users[0]
+    elif CFG["Config"]["user_mode"] == "local":
+        try:
+            user = users[users.index(get_user_name())]
+        except IndexError:
+            user = users[0]
     else:
         user = users[p.select(
             title = " Select the user:",

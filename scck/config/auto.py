@@ -1,42 +1,50 @@
-import sys
+import json
+import subprocess
+import re
+import os
+import pwd
+import grp
+
 from pathlib import Path
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib
-
 from scck.const import config_path
 
-def run_gen_user_info(*args, **kwargs):
-    if (config_path).exists():
-        check_old = config_path.with_suffix(".old")
-        i = 1
-        while check_old.exists():
-            check_old = check_old.with_suffix(f".old{i}")
-            i += 1
+def update_user_info(*args, **kwargs):
+    if not config_path.exists():
+        config = {
+            "Config": {
+                "user_mode": "local",
+                "job_log_dir": "~/.jobs"
+            },
+            "Users": {},
+            "Cluster": {},
+            "Modules": {}
+        }
+    else:
+        config = json.loads(config_path.read_text())
+        
+    config = check_default_user(config)
+    config = check_slurm_info(config)
+    config_path.write_text(json.dumps(config, indent=4))
+    return config
 
-        import shutil
-        shutil.copy(config_path, check_old)
-
-    DEFAULT_CONFIG = (Path(__file__).parent / "default.toml").read_text()
+def check_default_user(config):
+    current_user = os.getenv('USER') or os.getenv('LOGNAME')
     
-    DEFAULT_CONFIG = DEFAULT_CONFIG.replace(
-        "# ${AUTO_USER_LINES}", generate_default_userinfo() + "\n# ${AUTO_USER_LINES}")
-    DEFAULT_CONFIG = DEFAULT_CONFIG.replace(
-        "# ${AUTO_SLURM_LINES}", generate_slurm_info())
+    if current_user is None:
+        pass
+    
+    if current_user not in config['Users']:
+        config['Users'][current_user] = {
+            "name": current_user,
+            "short": [current_user[:5].upper()],
+            "root": str(Path.home().expanduser()),
+            "info": "Default User"
+        }
+    
+    return config
 
-    with open(config_path, "w") as f:
-        f.write(DEFAULT_CONFIG)
-
-def generate_slurm_info(*args, **kwargs):
-    import subprocess
-    import re
-    import os
-    import pwd
-    import grp
-
-    DEBUG_INFO = {"debug": {"NODES": 4, "CPUS": 64,
+def check_slurm_info(config):
+    DEBUG_INFO = {"_debug": {"NODES": 4, "CPUS": 64,
                             "GPUS": 4, "QOS": [], "TIMELIMIT": "1-00:00:00"}}
 
     # Get current username
@@ -124,78 +132,9 @@ def generate_slurm_info(*args, **kwargs):
                     "QOS": qos,
                     "TIMELIMIT": line[4]  # Default value
                 }
-
-    out = []
-    for key, value in partitions.items():
-        out.append(f"[ Cluster.{key} ]")
-        out.append(f"NODES     = {value['NODES']}")
-        out.append(f"CPUS      = {value['CPUS']}")
-        out.append(f"GPUS      = {value['GPUS']}")
-        out.append(f"QOS       = {value['QOS']}")
-        out.append(f"TIMELIMIT = \"{value['TIMELIMIT']}\"")
-        out.append(f"")
     
-    return "\n".join(out)
-
-def generate_default_userinfo(*args, **kwargs):
-    import os
-
-    # Get current username
-    current_user = os.getenv('USER') or os.getenv('LOGNAME') or 'Alice'
-
-    USER_INFO = {
-        current_user: {
-            "name": current_user,
-            "short": [current_user[:5].upper()],
-            "root": Path.home(),
-            "info": "Default User"
-        }
-    }
-
-    out = []
-    for key, value in USER_INFO.items():
-        out.append(f"[ Users.{key} ]")
-        out.append(f"name  = \"{key}\"")
-        out.append(f"short = {value['short']}")
-        out.append(f"root  = \"{value['root']}\"")
-        out.append(f"info  = \"{value['info']}\"")
-        out.append(f"")
-    return "\n".join(out)
-
-# def refresh_module_info(CFG, *args, **kwargs):
-#     import subprocess
-
-#     module_list = list(CFG['Modules'].keys())
+    for name, value in partitions.items():
+        if name not in config['Cluster']:
+            config['Cluster'][name] = value
     
-#     avail_lines = subprocess.run(
-#         ["module avail"],
-#         capture_output=True, text=True, check=True
-#     ).stdout.strip().splitlines()
-    
-#     avail_lines = filter(lambda x: not x.startswith("-"), avail_lines)
-
-#     avail_modules = {}
-    
-#     for line in avail_lines:
-#         for m in line.split():
-#             name = m.replace("/", "-")
-#             if "vasp" in m:
-#                 avail_modules[name] = (
-#                     {"package": "vasp", "type": "module", "required": m, "src": ""}
-#                 )
-#             elif "lammps" in m:
-#                 avail_modules[name] = (
-#                     {"package": "lammps", "type": "module", "required": m, "src": ""}
-#                 )
-    
-#     with open(config_path, "rb") as f:
-#         lines = f.readlines()
-#         start_idx = 
-                
-    
-
-if not (config_path).exists():
-    run_gen_user_info()
-    
-with open(config_path, "rb") as f:
-    CFG = tomllib.load(f)
+    return config

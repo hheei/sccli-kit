@@ -7,7 +7,7 @@ import sys
 
 from scck.const import cmdlen
 from scck.fn import get_str_width
-from scck.info import CFG
+from scck.config import CFG
 
 def is_relative_to(child, parent):
     child = os.path.realpath(child)
