@@ -24,7 +24,7 @@ def update_user_info(*args, **kwargs):
         
     config = check_default_user(config)
     config = check_slurm_info(config)
-    config_path.write_text(json.dumps(config, indent=4))
+    config_path.write_text(json.dumps(config, indent=4, ensure_ascii=False))
     return config
 
 def check_default_user(config):
