@@ -4,7 +4,7 @@ import multiprocessing as mp
 import subprocess
 from pathlib import Path
 
-from ..const import cmdlen
+from scck.const import cmdlen
 
 def _count_files_in_dir(path: Path):
     try:
@@ -31,7 +31,7 @@ def _fmt_size(size):
     else:
         return f"{size / 1024 / 1024:.2f}GB"
 
-def run_dirstat():
+def run_dirstat(*args, **kwargs):
     print(" " + " DIRSTAT ".center(cmdlen, "="))    
     blacklist = ("Library",)
     dirs = [d for d in Path.home().glob("*") if d.is_dir() and d.name not in blacklist]

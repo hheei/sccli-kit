@@ -19,42 +19,12 @@ def run_gen_user_info(*args, **kwargs):
         import shutil
         shutil.copy(config_path, check_old)
 
-    DEFAULT_CONFIG = f"""# -*- mode: toml -*-
-# Sccli-Kit Configuration File
-[ Config ]
-user_mode = "local"              ### "local" or "shared"
-job_log_dir = "~/.jobs"          ### Job log directory
-
-[ Users ]
-# Example of user information.
-# the first user will be used if user_mode is "local"
-#
-#  [ Users.alice ]               ### Your account name
-#  name  = "Alice"               ### Your account name
-#  short = ["MrA"]               ### Used in the command line
-#  root  = "~"                   ### Root directory for user
-#  info  = "I Love Python"       ### Some information about you
-#
-# -*- {{{{ $AUTO_GENERATED_USER_INFO }}}} -*- #
-
-[ Cluster ]
-# Define the cluster information. 
-# Generated after initial run.
-#
-# [ Cluster.debug ]
-#  NODES     = 4
-#  CPUS      = 64
-#  GPUS      = 4
-#  QOS       = []
-#  TIMELIMIT = "1-00:00:00"
-#
-# -*- {{{{ $AUTO_GENERATED_SLURM_INFO }}}} -*- #
-"""
-
+    DEFAULT_CONFIG = (Path(__file__).parent / "default.toml").read_text()
+    
     DEFAULT_CONFIG = DEFAULT_CONFIG.replace(
-        "# -*- {{ $AUTO_GENERATED_USER_INFO }} -*- #", generate_default_userinfo() + "\n# -*- {{ $AUTO_GENERATED_USER_INFO }} -*- #")
+        "# ${AUTO_USER_LINES}", generate_default_userinfo() + "\n# ${AUTO_USER_LINES}")
     DEFAULT_CONFIG = DEFAULT_CONFIG.replace(
-        "# -*- {{ $AUTO_GENERATED_SLURM_INFO }} -*- #", generate_slurm_info())
+        "# ${AUTO_SLURM_LINES}", generate_slurm_info())
 
     with open(config_path, "w") as f:
         f.write(DEFAULT_CONFIG)
@@ -167,7 +137,6 @@ def generate_slurm_info(*args, **kwargs):
     
     return "\n".join(out)
 
-
 def generate_default_userinfo(*args, **kwargs):
     import os
 
@@ -192,6 +161,38 @@ def generate_default_userinfo(*args, **kwargs):
         out.append(f"info  = \"{value['info']}\"")
         out.append(f"")
     return "\n".join(out)
+
+# def refresh_module_info(CFG, *args, **kwargs):
+#     import subprocess
+
+#     module_list = list(CFG['Modules'].keys())
+    
+#     avail_lines = subprocess.run(
+#         ["module avail"],
+#         capture_output=True, text=True, check=True
+#     ).stdout.strip().splitlines()
+    
+#     avail_lines = filter(lambda x: not x.startswith("-"), avail_lines)
+
+#     avail_modules = {}
+    
+#     for line in avail_lines:
+#         for m in line.split():
+#             name = m.replace("/", "-")
+#             if "vasp" in m:
+#                 avail_modules[name] = (
+#                     {"package": "vasp", "type": "module", "required": m, "src": ""}
+#                 )
+#             elif "lammps" in m:
+#                 avail_modules[name] = (
+#                     {"package": "lammps", "type": "module", "required": m, "src": ""}
+#                 )
+    
+#     with open(config_path, "rb") as f:
+#         lines = f.readlines()
+#         start_idx = 
+                
+    
 
 if not (config_path).exists():
     run_gen_user_info()

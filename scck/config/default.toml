@@ -1,0 +1,44 @@
+# -*- mode: toml -*-
+# Sccli-Kit Configuration File
+[ Config ]
+user_mode = "local"              ### "local" or "shared"
+job_log_dir = "~/.jobs"          ### Job log directory
+
+[ Users ]
+# Example of user information.
+# the first user will be used if user_mode is "local"
+#
+#  [ Users.alice ]               ### Your account name
+#  name  = "Alice"               ### Your account name
+#  short = ["MrA"]               ### Used in the command line
+#  root  = "~"                   ### Root directory for user
+#  info  = "I Love Python"       ### Some information about you
+#
+# ${AUTO_USER_LINES}
+
+[ Cluster ]
+# Define the cluster information. 
+# Generated after initial run.
+#
+# [ Cluster.debug ]
+#  NODES     = 4
+#  CPUS      = 64
+#  GPUS      = 4
+#  QOS       = []
+#  TIMELIMIT = "1-00:00:00"
+#
+# ${AUTO_SLURM_LINES}
+
+[ Modules ]
+# This class stored the module information for job generation.
+# [ Modules."vasp-6.5.1" ]
+#  package  = "vasp"
+#  flags     = "module;gpu"
+#  required = "vasp/6.5.1"
+#  src      = "echo 'hello'"
+#
+# [ Modules."lammps" ]
+#  package  = "lammps"
+#  flags     = "conda"
+#  required = "env"
+#  src      = "echo 'hello'"

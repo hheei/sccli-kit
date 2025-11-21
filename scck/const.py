@@ -13,4 +13,4 @@ title = "\n ".join([
          "Author: Chon-Hei Lo".center(cmdlen, " ")
          ])
 
-config_path = Path.home() / ".sccli-kit"
+config_path = Path("~/.sccli-kit").expanduser()

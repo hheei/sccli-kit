@@ -5,16 +5,16 @@ from pathlib import Path
 from collections import defaultdict
 import sys
 
-from ..const import cmdlen
-from ..fn import get_str_width
-from ..info import CFG
+from scck.const import cmdlen
+from scck.fn import get_str_width
+from scck.info import CFG
 
 def is_relative_to(child, parent):
     child = os.path.realpath(child)
     parent = os.path.realpath(parent)
     return os.path.commonpath([child, parent]) == parent
 
-def run_slurm_table_generator():
+def run_slurm_table_generator(*args, **kwargs):
     try:
         result = subprocess.run(
             ["squeue", "-u", os.getenv('USER') or os.getenv('LOGNAME') or '', "-o", "%i,%P,%j,%t,%M,%D", "--noheader"],
