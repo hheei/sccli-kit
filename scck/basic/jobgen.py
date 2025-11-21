@@ -101,7 +101,7 @@ def run_genjob(p: Prompt, *args, **kwargs):
         cpus_per_task = p.fill(
             title   = f" Number of CPUs per task: (*factor of {cpus_per_node})",
             default = None,
-            mapper  = lambda x: int(x) if x.isdigit() else None,
+            mapper  = lambda x: int(x) if x is not None and x.isdigit() else None,
             checker = lambda x: True if x is None else cpus_per_node % x == 0,
         )
         
