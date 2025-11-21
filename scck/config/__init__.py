@@ -10,5 +10,5 @@ if not config_path.exists():
 else:
     CFG = json.loads(config_path.read_text())
 
-if _name is not None and _name not in CFG["Users"]:
+if CFG['Config']['user_mode'] == 'local' and _name is not None and _name not in CFG["Users"]:
     CFG = update_user_info()
