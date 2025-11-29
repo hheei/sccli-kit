@@ -120,7 +120,6 @@ def run_genjob(p: Prompt, *args, **kwargs):
         cpus_per_task = cpus_per_task, 
         timelimit = timelimit.strftime("%d-%H:%M:%S"), 
         qos = qos, 
-        user = user, 
         *args, 
         **kwargs)
     
